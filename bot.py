@@ -1,10 +1,11 @@
 import telebot
 from telebot import types
-
-# Импортируем токен из конфигурации
 from config import BOT_TOKEN
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
-# Инициализация бота
+
+# ========== НАСТОЯЩИЙ БОТ ==========
 bot = telebot.TeleBot(BOT_TOKEN)
 
 # Вопросы и варианты ответов
@@ -59,7 +60,26 @@ def restart_poll(message):
     else:
         bot.send_message(message.chat.id, "Напишите что угодно, чтобы начать.")
 
-# Точка входа
+
+# ========== МИНИМАЛЬНЫЙ HTTP-СЕРВЕР (для Timeweb) ==========
+class SimpleServer(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running.")
+
+def run_server():
+    server_address = ('', 8000)
+    httpd = HTTPServer(server_address, SimpleServer)
+    httpd.serve_forever()
+
+# ========== ЗАПУСК ==========
 if __name__ == '__main__':
+    # Запускаем веб-сервер в отдельном потоке
+    server_thread = threading.Thread(target=run_server)
+    server_thread.daemon = True
+    server_thread.start()
+
+    # Запускаем бота
     print("Бот запущен...")
     bot.polling(none_stop=True)
