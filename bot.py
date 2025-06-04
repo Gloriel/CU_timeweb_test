@@ -1,35 +1,25 @@
 import telebot
 from telebot import types
-import os
 
-# Загрузка токена из переменных окружения
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+# Импортируем токен из конфигурации
+from config import BOT_TOKEN
 
 # Инициализация бота
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Состояния пользователя
-user_data = {}
-
 # Вопросы и варианты ответов
 questions = [
-    {
-        "text": "Какой цвет тебе нравится?",
-        "options": ["Красный", "Синий", "Зелёный"]
-    },
-    {
-        "text": "Любимое время года?",
-        "options": ["Весна", "Лето", "Осень", "Зима"]
-    },
-    {
-        "text": "Предпочитаешь кофе или чай?",
-        "options": ["Кофе", "Чай"]
-    }
+    {"text": "Какой цвет тебе нравится?", "options": ["Красный", "Синий", "Зелёный"]},
+    {"text": "Любимое время года?", "options": ["Весна", "Лето", "Осень", "Зима"]},
+    {"text": "Предпочитаешь кофе или чай?", "options": ["Кофе", "Чай"]}
 ]
 
-# Обработчик любого сообщения
-@bot.message_handler(func=lambda message: True)
-def start_poll(message):
+# Состояния пользователей
+user_data = {}
+
+# Обработчик команды /start
+@bot.message_handler(commands=['start'])
+def start(message):
     chat_id = message.chat.id
     user_data[chat_id] = {"answers": [], "current": 0}
     ask_question(chat_id, 0)
@@ -65,11 +55,11 @@ def show_results(chat_id):
 
 def restart_poll(message):
     if message.text == "Пройти снова":
-        start_poll(message)
+        start(message)
     else:
         bot.send_message(message.chat.id, "Напишите что угодно, чтобы начать.")
 
-# Запуск бота
+# Точка входа
 if __name__ == '__main__':
     print("Бот запущен...")
     bot.polling(none_stop=True)
